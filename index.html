@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe Music Player</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="language-notice" class="notice-backdrop" role="dialog" aria-live="polite" aria-label="Language notice">
+        <div class="notice-box">
+            <p class="notice-text">Note: This playlist includes songs in multiple languages — English, Hindi, Bengali, Japanese, French, and more. Lyrics may not always be understandable; just feel the music and enjoy the vibe.</p>
+            <button id="notice-close" class="notice-close" aria-label="Dismiss notice">Got it</button>
+        </div>
+    </div>
+    <div class="container">
+        <header>
+            <h1>🎵 Vibe Music</h1>
+            <p class="subtitle">Your Personal Music Collection</p>
+        </header>
+
+        <div class="player">
+            <div class="song-info">
+                <h2 id="song-title">Select a song</h2>
+                <p id="song-artist">Artist</p>
+            </div>
+
+            <audio id="audio" preload="metadata"></audio>
+
+            <div class="progress-container">
+                <div class="progress" id="progress"></div>
+                <div class="time">
+                    <span id="current-time">0:00</span>
+                    <span id="duration">0:00</span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="prev" class="btn">⏮️</button>
+                <button id="play" class="btn btn-play">▶️</button>
+                <button id="next" class="btn">⏭️</button>
+                <button id="like" class="btn">🤍</button>
+                <button id="autoplay" class="btn btn-autoplay active">🔁</button>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="all">All Songs</button>
+            <button class="tab-btn" data-tab="creators-choice">⭐ Creator's Choice</button>
+            <button class="tab-btn" data-tab="favorites">❤️ Favorites</button>
+        </div>
+
+        <div class="playlist">
+            <ul id="playlist"></ul>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
