@@ -17,7 +17,6 @@
     <div class="container">
         <header>
             <h1>🎵 Vibe Music</h1>
-            <p class="subtitle">Your Personal Music Collection</p>
         </header>
 
         <div class="player">
@@ -26,7 +25,9 @@
                 <p id="song-artist">Artist</p>
             </div>
 
-            <audio id="audio" preload="metadata"></audio>
+            <audio id="audio" preload="metadata" crossorigin="anonymous"></audio>
+
+            <canvas id="visualizer"></canvas>
 
             <div class="progress-container">
                 <div class="progress" id="progress"></div>

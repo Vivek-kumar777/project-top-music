@@ -12,6 +12,89 @@ const currentTimeEl = document.getElementById('current-time');
 const durationEl = document.getElementById('duration');
 const playlistEl = document.getElementById('playlist');
 const tabBtns = document.querySelectorAll('.tab-btn');
+const canvas = document.getElementById('visualizer');
+const ctx = canvas.getContext('2d');
+
+// Set canvas size to match display size
+function resizeCanvas() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// Audio visualization setup with Web Audio API
+let animationId;
+let isPlaying = false;
+let audioContext;
+let analyser;
+let dataArray;
+let bufferLength;
+let source;
+let isAudioContextSetup = false;
+
+function setupAudioContext() {
+    if (isAudioContextSetup) return;
+    
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioContext.createAnalyser();
+    source = audioContext.createMediaElementSource(audio);
+    
+    source.connect(analyser);
+    analyser.connect(audioContext.destination);
+    
+    analyser.fftSize = 512;
+    analyser.smoothingTimeConstant = 0.6;
+    bufferLength = analyser.frequencyBinCount;
+    dataArray = new Uint8Array(bufferLength);
+    
+    isAudioContextSetup = true;
+}
+
+function getWaveGradient() {
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    gradient.addColorStop(0, '#06b6d4');
+    gradient.addColorStop(0.55, '#7c3aed');
+    gradient.addColorStop(1, '#ef476f');
+    return gradient;
+}
+
+function drawVisualizer() {
+    if (!isAudioContextSetup) {
+        return;
+    }
+
+    if (!isPlaying) {
+        // Keep the last frame frozen when paused
+        if (animationId) {
+            cancelAnimationFrame(animationId);
+        }
+        return;
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    analyser.getByteFrequencyData(dataArray);
+
+    const width = canvas.width;
+    const height = canvas.height;
+    const binCount = dataArray.length;
+    // define bar width and gap
+    const gap = 1;
+    const barWidth = Math.max(1, (width / binCount) - gap);
+
+    ctx.fillStyle = getWaveGradient();
+
+    for (let i = 0; i < binCount; i++) {
+        const value = dataArray[i];
+        const amp = value / 255;
+        const barHeight = amp * height;
+        const x = i * (barWidth + gap);
+
+        ctx.fillRect(x, height - barHeight, barWidth, barHeight);
+    }
+
+    animationId = requestAnimationFrame(drawVisualizer);
+}
 
 // Language notice: always show modal on page load (no reopen/info button)
 const noticeEl = document.getElementById('language-notice');
@@ -45,6 +128,8 @@ fetch('songs.json')
         songs = data.songs;
         loadSong(currentSongIndex);
         createPlaylist();
+        // Initialize visualizer
+        drawVisualizer();
     })
     .catch(error => {
         console.error('Error loading songs:', error);
@@ -58,35 +143,70 @@ function loadSong(index) {
     const song = songs[index];
     songTitle.textContent = song.title;
     songArtist.textContent = song.artist;
+    // allow cross-origin audio so the Web Audio API can analyze it
+    audio.crossOrigin = 'anonymous';
     audio.src = song.url;
     updateLikeButton();
 }
 
 function playSong() {
+    if (!isAudioContextSetup) {
+        setupAudioContext();
+    }
+    if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume();
+    }
     playBtn.textContent = '⏸️';
     audio.play();
+    isPlaying = true;
+    drawVisualizer();
 }
 
 function pauseSong() {
     playBtn.textContent = '▶️';
     audio.pause();
+    isPlaying = false;
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+    }
+}
+
+function getActivePlaylist() {
+    if (currentTab === 'all') {
+        return songs.map((_, i) => i);
+    } else if (currentTab === 'creators-choice') {
+        return creatorsChoice.filter(i => i >= 0 && i < songs.length);
+    } else if (currentTab === 'favorites') {
+        return favorites.filter(i => i >= 0 && i < songs.length);
+    }
+    return songs.map((_, i) => i);
 }
 
 function prevSong() {
-    currentSongIndex--;
-    if (currentSongIndex < 0) {
-        currentSongIndex = songs.length - 1;
+    const playlist = getActivePlaylist();
+    const currentPos = playlist.indexOf(currentSongIndex);
+    
+    if (currentPos > 0) {
+        currentSongIndex = playlist[currentPos - 1];
+    } else {
+        currentSongIndex = playlist[playlist.length - 1];
     }
+    
     loadSong(currentSongIndex);
     playSong();
     updatePlaylistActive();
 }
 
 function nextSong() {
-    currentSongIndex++;
-    if (currentSongIndex >= songs.length) {
-        currentSongIndex = 0;
+    const playlist = getActivePlaylist();
+    const currentPos = playlist.indexOf(currentSongIndex);
+    
+    if (currentPos >= 0 && currentPos < playlist.length - 1) {
+        currentSongIndex = playlist[currentPos + 1];
+    } else {
+        currentSongIndex = playlist[0];
     }
+    
     loadSong(currentSongIndex);
     playSong();
     updatePlaylistActive();
@@ -216,6 +336,8 @@ function toggleAutoplay() {
     }
     localStorage.setItem('autoplay', autoplay);
 }
+
+
 
 // Event Listeners
 playBtn.addEventListener('click', () => {
