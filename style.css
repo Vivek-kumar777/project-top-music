@@ -190,7 +190,7 @@ header h1 {
     width: 60px;
     height: 60px;
     font-size: 1.45rem;
-    background: linear-gradient(135deg,#f4dd98,#ef476f);
+    background: linear-gradient(135deg,#f4dd98,#ff31c5);
     box-shadow: 0 10px 30px rgba(239,71,111,0.28);
     transform: translateY(-2px);
     animation: pulse-play 2s ease-in-out infinite;

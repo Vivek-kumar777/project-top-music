@@ -115,8 +115,8 @@ if (noticeEl && noticeCloseBtn) {
 let songs = [];
 let currentSongIndex = 0;
 let autoplay = true;
-let favorites = JSON.parse(localStorage.getItem('favorites')) || [29];
-const defaultCreatorsChoice = [0, 1, 2, 4, 8, 11, 13, 15, 16, 19, 22, 26, 29, 30, 37, 39, 40, 41, 45, 47, 49, 51, 53, 54, 55, 58, 59, 60];
+let favorites = JSON.parse(localStorage.getItem('favorites')) || [54];
+const defaultCreatorsChoice = [];
 let creatorsChoice = defaultCreatorsChoice;
 localStorage.setItem('creatorsChoice', JSON.stringify(defaultCreatorsChoice));
 let currentTab = 'all';
@@ -247,12 +247,9 @@ function createPlaylist() {
         displaySongs = songs;
         songIndices = songs.map((_, i) => i);
     } else if (currentTab === 'creators-choice') {
-        // Filter out any invalid indices and map to songs
         songIndices = creatorsChoice.filter(i => i >= 0 && i < songs.length);
         displaySongs = songIndices.map(i => songs[i]);
-        console.log('Creator\'s Choice - Indices:', songIndices, 'Display Songs:', displaySongs.length);
     } else if (currentTab === 'favorites') {
-        // Filter out any invalid indices and map to songs
         songIndices = favorites.filter(i => i >= 0 && i < songs.length);
         displaySongs = songIndices.map(i => songs[i]);
     }
